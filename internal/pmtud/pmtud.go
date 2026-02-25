@@ -7,7 +7,7 @@ import (
 	"net/netip"
 	"time"
 
-	"github.com/qdm12/gluetun/internal/firewall"
+	"github.com/qdm12/gluetun/internal/firewall/iptables"
 	"github.com/qdm12/gluetun/internal/pmtud/constants"
 	"github.com/qdm12/gluetun/internal/pmtud/icmp"
 	"github.com/qdm12/gluetun/internal/pmtud/tcp"
@@ -71,7 +71,7 @@ func PathMTUDiscover(ctx context.Context, icmpAddrs []netip.Addr, tcpAddrs []net
 	}
 	mtu, err = tcp.PathMTUDiscover(ctx, tcpAddrs, minMTU, maxPossibleMTU, tryTimeout, fw, logger)
 	if err != nil {
-		if errors.Is(err, firewall.ErrMarkMatchModuleMissing) {
+		if errors.Is(err, iptables.ErrMarkMatchModuleMissing) {
 			logger.Debugf("aborting TCP path MTU discovery: %s", err)
 			if icmpSuccess {
 				return maxPossibleMTU, nil // only rely on ICMP PMTUD results

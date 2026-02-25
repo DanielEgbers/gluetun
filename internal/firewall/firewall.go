@@ -2,24 +2,23 @@ package firewall
 
 import (
 	"context"
+	"fmt"
 	"net/netip"
 	"sync"
 
+	"github.com/qdm12/gluetun/internal/firewall/iptables"
 	"github.com/qdm12/gluetun/internal/models"
 	"github.com/qdm12/gluetun/internal/routing"
 )
 
 type Config struct {
-	runner         CmdRunner
-	logger         Logger
-	iptablesMutex  sync.Mutex
-	ip6tablesMutex sync.Mutex
-	defaultRoutes  []routing.DefaultRoute
-	localNetworks  []routing.LocalNetwork
+	runner        CmdRunner
+	logger        Logger
+	defaultRoutes []routing.DefaultRoute
+	localNetworks []routing.LocalNetwork
 
-	// Fixed state
-	ipTables        string
-	ip6Tables       string
+	// Fixed
+	impl            firewallImpl
 	customRulesPath string
 
 	// State
@@ -38,25 +37,19 @@ func NewConfig(ctx context.Context, logger Logger,
 	runner CmdRunner, defaultRoutes []routing.DefaultRoute,
 	localNetworks []routing.LocalNetwork,
 ) (config *Config, err error) {
-	iptables, err := checkIptablesSupport(ctx, runner, "iptables", "iptables-nft", "iptables-legacy")
+	impl, err := iptables.New(ctx, runner, logger)
 	if err != nil {
-		return nil, err
-	}
-
-	ip6tables, err := findIP6tablesSupported(ctx, runner)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("creating iptables firewall: %w", err)
 	}
 
 	return &Config{
 		runner:            runner,
 		logger:            logger,
 		allowedInputPorts: make(map[uint16]map[string]struct{}),
-		ipTables:          iptables,
-		ip6Tables:         ip6tables,
-		customRulesPath:   "/iptables/post-rules.txt",
 		// Obtained from routing
-		defaultRoutes: defaultRoutes,
-		localNetworks: localNetworks,
+		defaultRoutes:   defaultRoutes,
+		localNetworks:   localNetworks,
+		impl:            impl,
+		customRulesPath: "/iptables/post-rules.txt",
 	}, nil
 }

@@ -1,4 +1,4 @@
-package firewall
+package iptables
 
 import (
 	"context"
@@ -53,7 +53,7 @@ func (c *Config) Version(ctx context.Context) (string, error) {
 	if len(words) < minWords {
 		return "", fmt.Errorf("%w: %s", ErrIPTablesVersionTooShort, output)
 	}
-	return words[1], nil
+	return "iptables " + words[1], nil
 }
 
 func (c *Config) runIptablesInstructions(ctx context.Context, instructions []string) error {
@@ -84,7 +84,7 @@ func (c *Config) runIptablesInstruction(ctx context.Context, instruction string)
 	return nil
 }
 
-func (c *Config) clearAllRules(ctx context.Context) error {
+func (c *Config) ClearAllRules(ctx context.Context) error {
 	tables := []string{"filter"}
 	for _, table := range tables {
 		return c.runMixedIptablesInstructions(ctx, []string{
@@ -95,7 +95,7 @@ func (c *Config) clearAllRules(ctx context.Context) error {
 	return nil
 }
 
-func (c *Config) setIPv4AllPolicies(ctx context.Context, policy string) error {
+func (c *Config) SetIPv4AllPolicies(ctx context.Context, policy string) error {
 	switch policy {
 	case "ACCEPT", "DROP":
 	default:
@@ -108,13 +108,13 @@ func (c *Config) setIPv4AllPolicies(ctx context.Context, policy string) error {
 	})
 }
 
-func (c *Config) acceptInputThroughInterface(ctx context.Context, intf string, remove bool) error {
+func (c *Config) AcceptInputThroughInterface(ctx context.Context, intf string, remove bool) error {
 	return c.runMixedIptablesInstruction(ctx, fmt.Sprintf(
 		"%s INPUT -i %s -j ACCEPT", appendOrDelete(remove), intf,
 	))
 }
 
-func (c *Config) acceptInputToSubnet(ctx context.Context, intf string,
+func (c *Config) AcceptInputToSubnet(ctx context.Context, intf string,
 	destination netip.Prefix, remove bool,
 ) error {
 	interfaceFlag := "-i " + intf
@@ -134,20 +134,20 @@ func (c *Config) acceptInputToSubnet(ctx context.Context, intf string,
 	return c.runIP6tablesInstruction(ctx, instruction)
 }
 
-func (c *Config) acceptOutputThroughInterface(ctx context.Context, intf string, remove bool) error {
+func (c *Config) AcceptOutputThroughInterface(ctx context.Context, intf string, remove bool) error {
 	return c.runMixedIptablesInstruction(ctx, fmt.Sprintf(
 		"%s OUTPUT -o %s -j ACCEPT", appendOrDelete(remove), intf,
 	))
 }
 
-func (c *Config) acceptEstablishedRelatedTraffic(ctx context.Context, remove bool) error {
+func (c *Config) AcceptEstablishedRelatedTraffic(ctx context.Context, remove bool) error {
 	return c.runMixedIptablesInstructions(ctx, []string{
 		fmt.Sprintf("%s OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT", appendOrDelete(remove)),
 		fmt.Sprintf("%s INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT", appendOrDelete(remove)),
 	})
 }
 
-func (c *Config) acceptOutputTrafficToVPN(ctx context.Context,
+func (c *Config) AcceptOutputTrafficToVPN(ctx context.Context,
 	defaultInterface string, connection models.Connection, remove bool,
 ) error {
 	protocol := connection.Protocol
@@ -165,8 +165,11 @@ func (c *Config) acceptOutputTrafficToVPN(ctx context.Context,
 	return c.runIP6tablesInstruction(ctx, instruction)
 }
 
+// AcceptOutputFromIPToSubnet accepts outgoing traffic from sourceIP to destinationSubnet
+// on the interface intf. If intf is empty, it is set to "*" which means all interfaces.
+// If remove is true, the rule is removed instead of added.
 // Thanks to @npawelek.
-func (c *Config) acceptOutputFromIPToSubnet(ctx context.Context,
+func (c *Config) AcceptOutputFromIPToSubnet(ctx context.Context,
 	intf string, sourceIP netip.Addr, destinationSubnet netip.Prefix, remove bool,
 ) error {
 	doIPv4 := sourceIP.Is4() && destinationSubnet.Addr().Is4()
@@ -187,8 +190,11 @@ func (c *Config) acceptOutputFromIPToSubnet(ctx context.Context,
 	return c.runIP6tablesInstruction(ctx, instruction)
 }
 
-// NDP uses multicast address (theres no broadcast in IPv6 like ARP uses in IPv4).
-func (c *Config) acceptIpv6MulticastOutput(ctx context.Context,
+// AcceptIpv6MulticastOutput accepts outgoing traffic to the IPv6 multicast address
+// ff02::1:ff00:0/104, which is used for NDP (Neighbor Discovery Protocol) to resolve
+// IPv6 addresses to MAC addresses. If intf is empty, it is set to "*" which means
+// all interfaces. If remove is true, the rule is removed instead of added.
+func (c *Config) AcceptIpv6MulticastOutput(ctx context.Context,
 	intf string, remove bool,
 ) error {
 	interfaceFlag := "-o " + intf
@@ -200,8 +206,11 @@ func (c *Config) acceptIpv6MulticastOutput(ctx context.Context,
 	return c.runIP6tablesInstruction(ctx, instruction)
 }
 
-// Used for port forwarding, with intf set to tun.
-func (c *Config) acceptInputToPort(ctx context.Context, intf string, port uint16, remove bool) error {
+// AcceptInputToPort accepts incoming traffic on the specified port, for both TCP and UDP
+// protocols, on the interface intf. If intf is empty, it is set to "*" which means all interfaces.
+// If remove is true, the rule is removed instead of added. This is used for port forwarding, with
+// intf set to the VPN tunnel interface.
+func (c *Config) AcceptInputToPort(ctx context.Context, intf string, port uint16, remove bool) error {
 	interfaceFlag := "-i " + intf
 	if intf == "*" { // all interfaces
 		interfaceFlag = ""
@@ -212,8 +221,12 @@ func (c *Config) acceptInputToPort(ctx context.Context, intf string, port uint16
 	})
 }
 
-// Used for VPN server side port forwarding, with intf set to the VPN tunnel interface.
-func (c *Config) redirectPort(ctx context.Context, intf string,
+// RedirectPort redirects incoming traffic on the specified source port to the
+// specified destination port, for both TCP and UDP protocols, on the interface intf.
+// If intf is empty, it is set to "*" which means all interfaces. If remove is true,
+// the redirection is removed instead of added. This is used for VPN server side
+// port forwarding, with intf set to the VPN tunnel interface.
+func (c *Config) RedirectPort(ctx context.Context, intf string,
 	sourcePort, destinationPort uint16, remove bool,
 ) (err error) {
 	interfaceFlag := "-i " + intf
@@ -260,7 +273,7 @@ func (c *Config) redirectPort(ctx context.Context, intf string,
 	return nil
 }
 
-func (c *Config) runUserPostRules(ctx context.Context, filepath string, remove bool) error {
+func (c *Config) RunUserPostRules(ctx context.Context, filepath string, remove bool) error {
 	file, err := os.OpenFile(filepath, os.O_RDONLY, 0)
 	if os.IsNotExist(err) {
 		return nil

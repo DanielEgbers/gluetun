@@ -7,7 +7,7 @@ import (
 	"net/netip"
 	"time"
 
-	"github.com/qdm12/gluetun/internal/firewall"
+	"github.com/qdm12/gluetun/internal/firewall/iptables"
 	"github.com/qdm12/gluetun/internal/pmtud/constants"
 	"github.com/qdm12/gluetun/internal/pmtud/ip"
 )
@@ -43,7 +43,7 @@ func findHighestMSSDestination(ctx context.Context, familyToFD map[int]fileDescr
 		if result.err != nil {
 			switch {
 			case err != nil: // error already occurred for another findMSS goroutine
-			case errors.Is(result.err, firewall.ErrMarkMatchModuleMissing):
+			case errors.Is(result.err, iptables.ErrMarkMatchModuleMissing):
 				err = fmt.Errorf("finding MSS for %s: %w", result.dst, result.err)
 			case dst.Addr().Is6() && errors.Is(result.err, ip.ErrNetworkUnreachable):
 				// silently discard IPv6 network unreachable errors since they are common

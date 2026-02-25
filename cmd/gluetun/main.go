@@ -283,7 +283,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 	err = printVersions(ctx, logger, []printVersionElement{
 		{name: "Alpine", getVersion: alpineConf.Version},
 		{name: "OpenVPN", getVersion: ovpnVersion},
-		{name: "IPtables", getVersion: firewallConf.Version},
+		{name: "Firewall", getVersion: firewallConf.Version},
 	})
 	if err != nil {
 		return err

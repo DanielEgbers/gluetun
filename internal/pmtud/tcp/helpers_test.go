@@ -8,6 +8,7 @@ import (
 
 	"github.com/qdm12/gluetun/internal/command"
 	"github.com/qdm12/gluetun/internal/firewall"
+	"github.com/qdm12/gluetun/internal/firewall/iptables"
 	"github.com/qdm12/gluetun/internal/netlink"
 	"github.com/qdm12/gluetun/internal/pmtud/constants"
 	"github.com/qdm12/gluetun/internal/routing"
@@ -35,7 +36,7 @@ func getFirewall(t *testing.T) *firewall.Config {
 		cmder := command.New()
 		var err error
 		testFirewall, err = firewall.NewConfig(t.Context(), noopLogger, cmder, nil, nil)
-		if errors.Is(err, firewall.ErrIPTablesNotSupported) {
+		if errors.Is(err, iptables.ErrNotSupported) {
 			t.Skip("iptables not installed, skipping TCP PMTUD tests")
 		}
 		require.NoError(t, err, "creating firewall config")

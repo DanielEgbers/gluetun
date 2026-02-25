@@ -1,4 +1,4 @@
-package firewall
+package iptables
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 func findIP6tablesSupported(ctx context.Context, runner CmdRunner) (
 	ip6tablesPath string, err error,
 ) {
-	ip6tablesPath, err = checkIptablesSupport(ctx, runner, "ip6tables", "ip6tables-nft", "ip6tables-legacy")
-	if errors.Is(err, ErrIPTablesNotSupported) {
+	ip6tablesPath, err = checkIptablesSupport(ctx, runner, "ip6tables", "ip6tables-legacy")
+	if errors.Is(err, ErrNotSupported) {
 		return "", nil
 	} else if err != nil {
 		return "", err
@@ -56,7 +56,7 @@ func (c *Config) runIP6tablesInstruction(ctx context.Context, instruction string
 
 var ErrPolicyNotValid = errors.New("policy is not valid")
 
-func (c *Config) setIPv6AllPolicies(ctx context.Context, policy string) error {
+func (c *Config) SetIPv6AllPolicies(ctx context.Context, policy string) error {
 	switch policy {
 	case "ACCEPT", "DROP":
 	default:
