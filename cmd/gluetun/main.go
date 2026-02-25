@@ -239,7 +239,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		}
 		err = netLinker.FlushConntrack()
 		if err != nil {
-			return fmt.Errorf("flushing conntrack: %w", err)
+			logger.Warnf("flushing conntrack failed: %s", err)
 		}
 	}
 
