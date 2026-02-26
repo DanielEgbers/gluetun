@@ -43,7 +43,7 @@ func (l *Loop) Run(ctx context.Context, done chan<- struct{}) {
 			runError, err = l.setupServer(ctx)
 			if err == nil {
 				l.backoffTime = defaultBackoffTime
-				l.logger.Info("ready")
+				l.logger.Info("ready and using DNS server at address " + settings.ServerAddress.String())
 				break
 			}
 
