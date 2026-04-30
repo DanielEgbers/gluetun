@@ -62,6 +62,7 @@ func Test_modifyConfig(t *testing.T) {
 				"pull-filter ignore \"auth-token\"",
 				"auth-retry nointeract",
 				"suppress-timestamps",
+				"handshake-window 10",
 				"auth-user-pass /etc/openvpn/auth.conf",
 				"verb 0",
 				"data-ciphers-fallback cipher",
