@@ -65,7 +65,11 @@ func OpenVPNConfig(provider OpenVPNProviderSettings,
 	lines.add("handshake-window", "10")   // default is 60 seconds which is too long
 	lines.add("dev", settings.Interface)
 	lines.add("verb", fmt.Sprint(*settings.Verbosity))
-	lines.add("proto", connection.Protocol)
+	protocol := connection.Protocol
+	if protocol == constants.TCP {
+		protocol = "tcp-client"
+	}
+	lines.add("proto", protocol)
 	lines.add("remote", connection.IP.String(), fmt.Sprint(connection.Port))
 
 	if *settings.User != "" {
