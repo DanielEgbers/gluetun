@@ -1,7 +1,6 @@
 package custom
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -11,8 +10,6 @@ import (
 	"github.com/qdm12/gluetun/internal/models"
 	"github.com/qdm12/gluetun/internal/provider/utils"
 )
-
-var ErrExtractData = errors.New("failed extracting information from custom configuration file")
 
 func (p *Provider) OpenVPNConfig(connection models.Connection,
 	settings settings.OpenVPN, ipv6Supported bool,

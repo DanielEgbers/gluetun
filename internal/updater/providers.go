@@ -15,8 +15,6 @@ type Provider interface {
 	FetchServers(ctx context.Context, minServers int) (servers []models.Server, err error)
 }
 
-var ErrServerHasNotEnoughInformation = errors.New("server has not enough information")
-
 func (u *Updater) updateProvider(ctx context.Context, provider Provider,
 	minRatio float64,
 ) (err error) {

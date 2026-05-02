@@ -21,8 +21,6 @@ import (
 	"github.com/qdm12/gluetun/internal/provider/utils"
 )
 
-var ErrServerNameNotFound = errors.New("server name not found in servers")
-
 // PortForward obtains a VPN server side port forwarded from PIA.
 func (p *Provider) PortForward(ctx context.Context,
 	objects utils.PortForwardObjects,
@@ -42,7 +40,7 @@ func (p *Provider) PortForward(ctx context.Context,
 	logger := objects.Logger
 
 	if !objects.CanPortForward {
-		return nil, fmt.Errorf("%w: for server %s", ErrServerNameNotFound, serverName)
+		return nil, fmt.Errorf("server name %s not found in servers", serverName)
 	}
 
 	privateIPClient, err := newHTTPClient(serverName)
@@ -91,8 +89,6 @@ func (p *Provider) PortForward(ctx context.Context,
 	return map[uint16]uint16{data.Port: data.Port}, nil
 }
 
-var ErrPortForwardedExpired = errors.New("port forwarded data expired")
-
 func (p *Provider) KeepPortForward(ctx context.Context,
 	objects utils.PortForwardObjects,
 ) (err error) {
@@ -136,13 +132,11 @@ func (p *Provider) KeepPortForward(ctx context.Context,
 			}
 			keepAliveTimer.Reset(keepAlivePeriod)
 		case <-expiryTimer.C:
-			return fmt.Errorf("%w: on %s", ErrPortForwardedExpired,
+			return fmt.Errorf("port forwarded data expired on %s",
 				data.Expiration.Format(time.RFC1123))
 		}
 	}
 }
-
-var errAPIIPNotFound = errors.New("API IP address not found")
 
 func findAPIIP(ctx context.Context, client *http.Client, gateway netip.Addr) (
 	apiIP netip.Addr, err error,
@@ -188,7 +182,7 @@ func findAPIIP(ctx context.Context, client *http.Client, gateway netip.Addr) (
 		return ip, nil
 	}
 
-	return netip.Addr{}, fmt.Errorf("%w: %w", errAPIIPNotFound, errors.Join(errs...))
+	return netip.Addr{}, fmt.Errorf("API IP address not found: %w", errors.Join(errs...))
 }
 
 func refreshPIAPortForwardData(ctx context.Context, client, privateIPClient *http.Client,
@@ -290,8 +284,6 @@ func packPayload(port uint16, token string, expiration time.Time) (payload strin
 	return payload, nil
 }
 
-var errEmptyToken = errors.New("token received is empty")
-
 func fetchToken(ctx context.Context, client *http.Client,
 	username, password string,
 ) (token string, err error) {
@@ -340,7 +332,7 @@ func fetchToken(ctx context.Context, client *http.Client,
 	}
 
 	if result.Token == "" {
-		return "", errEmptyToken
+		return "", errors.New("token received is empty")
 	}
 	return result.Token, nil
 }
@@ -391,7 +383,7 @@ func fetchPortForwardData(ctx context.Context, client *http.Client, apiIP netip.
 	}
 
 	if data.Status != "OK" {
-		return 0, "", expiration, fmt.Errorf("%w: status is: %s", ErrBadResponse, data.Status)
+		return 0, "", expiration, fmt.Errorf("bad response received with status %s", data.Status)
 	}
 
 	port, _, expiration, err = unpackPayload(data.Payload)
@@ -400,8 +392,6 @@ func fetchPortForwardData(ctx context.Context, client *http.Client, apiIP netip.
 	}
 	return port, data.Signature, expiration, err
 }
-
-var ErrBadResponse = errors.New("bad response received")
 
 func bindPort(ctx context.Context, client *http.Client, apiIPAddress netip.Addr, data piaPortForwardData) (err error) {
 	// Define a timeout since the default client has a large timeout and we don't
@@ -455,7 +445,7 @@ func bindPort(ctx context.Context, client *http.Client, apiIPAddress netip.Addr,
 	}
 
 	if responseData.Status != "OK" {
-		return fmt.Errorf("%w: %s: %s", ErrBadResponse, responseData.Status, responseData.Message)
+		return fmt.Errorf("bad response received with status %q and message %q", responseData.Status, responseData.Message)
 	}
 
 	return nil
@@ -464,7 +454,7 @@ func bindPort(ctx context.Context, client *http.Client, apiIPAddress netip.Addr,
 // replaceInErr is used to remove sensitive information from errors.
 func replaceInErr(err error, substitutions map[string]string) error {
 	s := replaceInString(err.Error(), substitutions)
-	return errors.New(s) //nolint:err113
+	return errors.New(s)
 }
 
 // replaceInString is used to remove sensitive information.
@@ -474,8 +464,6 @@ func replaceInString(s string, substitutions map[string]string) string {
 	}
 	return s
 }
-
-var ErrHTTPStatusCodeNotOK = errors.New("HTTP status code is not OK")
 
 func makeNOKStatusError(response *http.Response, substitutions map[string]string) (err error) {
 	url := response.Request.URL.String()
@@ -487,7 +475,6 @@ func makeNOKStatusError(response *http.Response, substitutions map[string]string
 	shortenMessage = strings.ReplaceAll(shortenMessage, "  ", " ")
 	shortenMessage = replaceInString(shortenMessage, substitutions)
 
-	return fmt.Errorf("%w: %s: %d %s: response received: %s",
-		ErrHTTPStatusCodeNotOK, url, response.StatusCode,
-		response.Status, shortenMessage)
+	return fmt.Errorf("HTTP status code not OK: %s: %d %s: response received: %s",
+		url, response.StatusCode, response.Status, shortenMessage)
 }

@@ -22,21 +22,17 @@ func Test_Provider_GetConnection(t *testing.T) {
 
 	const provider = providers.Windscribe
 
-	errTest := errors.New("test error")
-
 	testCases := map[string]struct {
 		filteredServers []models.Server
 		storageErr      error
 		selection       settings.ServerSelection
 		ipv6Supported   bool
 		connection      models.Connection
-		errWrapped      error
 		errMessage      string
 		panicMessage    string
 	}{
 		"error": {
-			storageErr: errTest,
-			errWrapped: errTest,
+			storageErr: errors.New("test error"),
 			errMessage: "filtering servers: test error",
 		},
 		"default OpenVPN TCP port": {
@@ -111,9 +107,10 @@ func Test_Provider_GetConnection(t *testing.T) {
 
 			connection, err := provider.GetConnection(testCase.selection, testCase.ipv6Supported)
 
-			assert.ErrorIs(t, err, testCase.errWrapped)
-			if testCase.errWrapped != nil {
+			if testCase.errMessage != "" {
 				assert.EqualError(t, err, testCase.errMessage)
+			} else {
+				assert.NoError(t, err)
 			}
 
 			assert.Equal(t, testCase.connection, connection)

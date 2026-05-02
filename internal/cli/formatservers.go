@@ -16,11 +16,6 @@ import (
 	"golang.org/x/text/language"
 )
 
-var (
-	ErrProviderUnspecified       = errors.New("VPN provider to format was not specified")
-	ErrMultipleProvidersToFormat = errors.New("more than one VPN provider to format were specified")
-)
-
 func addProviderFlag(flagSet *flag.FlagSet, providerToFormat map[string]*bool,
 	provider string, titleCaser cases.Caser,
 ) {
@@ -65,11 +60,10 @@ func (c *CLI) FormatServers(args []string) error {
 	}
 	switch len(providers) {
 	case 0:
-		return fmt.Errorf("%w", ErrProviderUnspecified)
+		return errors.New("VPN provider to format was not specified")
 	case 1:
 	default:
-		return fmt.Errorf("%w: %d specified: %s",
-			ErrMultipleProvidersToFormat, len(providers),
+		return fmt.Errorf("more than one VPN provider to format were specified: %d specified: %s", len(providers),
 			strings.Join(providers, ", "))
 	}
 

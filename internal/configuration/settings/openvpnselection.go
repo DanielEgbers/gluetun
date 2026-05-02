@@ -62,8 +62,7 @@ func (o OpenVPNSelection) validate(vpnProvider string) (err error) {
 		providers.Perfectprivacy,
 		providers.Vyprvpn,
 	) {
-		return fmt.Errorf("%w: for VPN service provider %s",
-			ErrOpenVPNTCPNotSupported, vpnProvider)
+		return fmt.Errorf("TCP protocol is not supported: for VPN service provider %s", vpnProvider)
 	}
 
 	// Validate CustomPort
@@ -78,8 +77,7 @@ func (o OpenVPNSelection) validate(vpnProvider string) (err error) {
 			providers.Nordvpn, providers.Purevpn,
 			providers.Surfshark, providers.VPNSecure,
 			providers.VPNUnlimited, providers.Vyprvpn:
-			return fmt.Errorf("%w: for VPN service provider %s",
-				ErrOpenVPNCustomPortNotAllowed, vpnProvider)
+			return fmt.Errorf("custom endpoint port is not allowed: for VPN service provider %s", vpnProvider)
 		default:
 			var allowedTCP, allowedUDP []uint16
 			switch vpnProvider {
@@ -123,8 +121,7 @@ func (o OpenVPNSelection) validate(vpnProvider string) (err error) {
 			}
 			err = validate.IsOneOf(*o.CustomPort, allowedPorts...)
 			if err != nil {
-				return fmt.Errorf("%w: for VPN service provider %s: %w",
-					ErrOpenVPNCustomPortNotAllowed, vpnProvider, err)
+				return fmt.Errorf("custom endpoint port is not allowed: for VPN service provider %s: %w", vpnProvider, err)
 			}
 		}
 	}
@@ -136,7 +133,7 @@ func (o OpenVPNSelection) validate(vpnProvider string) (err error) {
 			presets.Strong,
 		}
 		if err = validate.IsOneOf(*o.PIAEncPreset, validEncryptionPresets...); err != nil {
-			return fmt.Errorf("%w: %w", ErrOpenVPNEncryptionPresetNotValid, err)
+			return fmt.Errorf("PIA encryption preset is not valid: %w", err)
 		}
 	}
 

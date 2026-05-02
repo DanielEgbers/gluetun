@@ -19,8 +19,6 @@ import (
 func Test_GetConnection(t *testing.T) {
 	t.Parallel()
 
-	errTest := errors.New("test error")
-
 	testCases := map[string]struct {
 		provider        string
 		filteredServers []models.Server
@@ -30,12 +28,10 @@ func Test_GetConnection(t *testing.T) {
 		ipv6Supported   bool
 		randSource      rand.Source
 		connection      models.Connection
-		errWrapped      error
 		errMessage      string
 	}{
 		"storage filter error": {
-			filterError: errTest,
-			errWrapped:  errTest,
+			filterError: errors.New("test error"),
 			errMessage:  "filtering servers: test error",
 		},
 		"server without IPs": {
@@ -50,7 +46,6 @@ func Test_GetConnection(t *testing.T) {
 				OpenVPNUDPPort: 1,
 				WireguardPort:  1,
 			},
-			errWrapped: ErrNoConnectionToPickFrom,
 			errMessage: "no connection to pick from",
 		},
 		"OpenVPN server with hostname": {
@@ -199,9 +194,10 @@ func Test_GetConnection(t *testing.T) {
 				testCase.randSource)
 
 			assert.Equal(t, testCase.connection, connection)
-			assert.ErrorIs(t, err, testCase.errWrapped)
-			if testCase.errWrapped != nil {
+			if testCase.errMessage != "" {
 				assert.EqualError(t, err, testCase.errMessage)
+			} else {
+				assert.NoError(t, err)
 			}
 		})
 	}

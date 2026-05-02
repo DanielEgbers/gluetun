@@ -142,8 +142,6 @@ func main() {
 	}
 }
 
-var errCommandUnknown = errors.New("command is unknown")
-
 //nolint:gocognit,gocyclo,maintidx
 func _main(ctx context.Context, buildInfo models.BuildInformation,
 	args []string, logger log.LoggerInterface, reader *reader.Reader,
@@ -165,7 +163,7 @@ func _main(ctx context.Context, buildInfo models.BuildInformation,
 		case "genkey":
 			return cli.GenKey(args[2:])
 		default:
-			return fmt.Errorf("%w: %s", errCommandUnknown, args[1])
+			return fmt.Errorf("command is unknown: %s", args[1])
 		}
 	}
 

@@ -3,7 +3,6 @@ package version
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -25,8 +24,6 @@ type githubCommit struct {
 	} `json:"commit"`
 }
 
-var errHTTPStatusCode = errors.New("bad response HTTP status code")
-
 func getGithubReleases(ctx context.Context, client *http.Client) (releases []githubRelease, err error) {
 	// Define a timeout since the default client has a large timeout and we don't
 	// want to wait too long.
@@ -47,7 +44,7 @@ func getGithubReleases(ctx context.Context, client *http.Client) (releases []git
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%w: %d %s", errHTTPStatusCode,
+		return nil, fmt.Errorf("bad response HTTP status code: %d %s",
 			response.StatusCode, response.Status)
 	}
 

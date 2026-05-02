@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -106,28 +105,19 @@ type Role struct {
 	Routes []string `json:"-"`
 }
 
-var (
-	ErrMethodNotSupported      = errors.New("authentication method not supported")
-	ErrAPIKeyEmpty             = errors.New("api key is empty")
-	ErrBasicUsernameEmpty      = errors.New("username is empty")
-	ErrBasicPasswordEmpty      = errors.New("password is empty")
-	ErrRoutePathNotSupported   = errors.New("route path not supported by the control server")
-	ErrRouteMethodNotSupported = errors.New("route method not supported for the path")
-)
-
 func (r Role) Validate() (err error) {
 	err = validate.IsOneOf(r.Auth, AuthNone, AuthAPIKey, AuthBasic)
 	if err != nil {
-		return fmt.Errorf("%w: %s", ErrMethodNotSupported, r.Auth)
+		return fmt.Errorf("authentication method not supported: %s", r.Auth)
 	}
 
 	switch {
 	case r.Auth == AuthAPIKey && r.APIKey == "":
-		return fmt.Errorf("for role %s: %w", r.Name, ErrAPIKeyEmpty)
+		return fmt.Errorf("for role %s: api key is empty", r.Name)
 	case r.Auth == AuthBasic && r.Username == "":
-		return fmt.Errorf("for role %s: %w", r.Name, ErrBasicUsernameEmpty)
+		return fmt.Errorf("for role %s: username is empty", r.Name)
 	case r.Auth == AuthBasic && r.Password == "":
-		return fmt.Errorf("for role %s: %w", r.Name, ErrBasicPasswordEmpty)
+		return fmt.Errorf("for role %s: password is empty", r.Name)
 	}
 
 	for i, route := range r.Routes {
@@ -136,11 +126,11 @@ func (r Role) Validate() (err error) {
 		method, path := parts[0], parts[1]
 		methods, ok := validRoutes[path]
 		if !ok {
-			return fmt.Errorf("route %d of %d: %w: %s",
-				i+1, len(r.Routes), ErrRoutePathNotSupported, path)
+			return fmt.Errorf("route %d of %d: route path not supported by the control server: %s",
+				i+1, len(r.Routes), path)
 		} else if !slices.Contains(methods, method) {
-			return fmt.Errorf("route %d of %d: %w: %s for path %s",
-				i+1, len(r.Routes), ErrRouteMethodNotSupported, method, path)
+			return fmt.Errorf("route %d of %d: route method not supported for the path: %s for path %s",
+				i+1, len(r.Routes), method, path)
 		}
 	}
 

@@ -24,13 +24,6 @@ import (
 	"github.com/qdm12/gluetun/internal/updater/unzip"
 )
 
-var (
-	ErrModeUnspecified     = errors.New("at least one of -enduser or -maintainer must be specified")
-	ErrNoProviderSpecified = errors.New("no provider was specified")
-	ErrUsernameMissing     = errors.New("username is required for this provider")
-	ErrPasswordMissing     = errors.New("password is required for this provider")
-)
-
 type UpdaterLogger interface {
 	Info(s string)
 	Warn(s string)
@@ -65,14 +58,14 @@ func (c *CLI) Update(ctx context.Context, args []string, logger UpdaterLogger) e
 	}
 
 	if !endUserMode && !maintainerMode {
-		return fmt.Errorf("%w", ErrModeUnspecified)
+		return errors.New("at least one of -enduser or -maintainer must be specified")
 	}
 
 	if updateAll {
 		options.Providers = providers.All()
 	} else {
 		if csvProviders == "" {
-			return fmt.Errorf("%w", ErrNoProviderSpecified)
+			return errors.New("no provider was specified")
 		}
 		options.Providers = strings.Split(csvProviders, ",")
 	}

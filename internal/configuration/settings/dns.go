@@ -1,7 +1,6 @@
 package settings
 
 import (
-	"errors"
 	"fmt"
 	"net/netip"
 	"time"
@@ -48,22 +47,15 @@ type DNS struct {
 	UpstreamPlainAddresses []netip.AddrPort
 }
 
-var (
-	ErrDNSUpstreamTypeNotValid = errors.New("DNS upstream type is not valid")
-	ErrDNSUpdatePeriodTooShort = errors.New("update period is too short")
-	ErrDNSUpstreamPlainNoIPv6  = errors.New("upstream plain addresses do not contain any IPv6 address")
-	ErrDNSUpstreamPlainNoIPv4  = errors.New("upstream plain addresses do not contain any IPv4 address")
-)
-
 func (d DNS) validate() (err error) {
 	if !helpers.IsOneOf(d.UpstreamType, DNSUpstreamTypeDot, DNSUpstreamTypeDoh, DNSUpstreamTypePlain) {
-		return fmt.Errorf("%w: %s", ErrDNSUpstreamTypeNotValid, d.UpstreamType)
+		return fmt.Errorf("DNS upstream type is not valid: %s", d.UpstreamType)
 	}
 
 	const minUpdatePeriod = 30 * time.Second
 	if *d.UpdatePeriod != 0 && *d.UpdatePeriod < minUpdatePeriod {
-		return fmt.Errorf("%w: %s must be bigger than %s",
-			ErrDNSUpdatePeriodTooShort, *d.UpdatePeriod, minUpdatePeriod)
+		return fmt.Errorf("update period is too short: %s must be bigger than %s",
+			*d.UpdatePeriod, minUpdatePeriod)
 	}
 
 	if d.UpstreamType == DNSUpstreamTypePlain {
@@ -81,9 +73,11 @@ func (d DNS) validate() (err error) {
 		}
 		switch {
 		case *d.IPv6 && !selectedHasPlainIPv6:
-			return fmt.Errorf("%w: in %d addresses", ErrDNSUpstreamPlainNoIPv6, len(d.UpstreamPlainAddresses))
+			return fmt.Errorf("upstream plain addresses do not contain any IPv6 address: "+
+				"in %d addresses", len(d.UpstreamPlainAddresses))
 		case !*d.IPv6 && !selectedHasPlainIPv4:
-			return fmt.Errorf("%w: in %d addresses", ErrDNSUpstreamPlainNoIPv4, len(d.UpstreamPlainAddresses))
+			return fmt.Errorf("upstream plain addresses do not contain any IPv4 address: "+
+				"in %d addresses", len(d.UpstreamPlainAddresses))
 		}
 	}
 	// Note: all DNS built in providers have both IPv4 and IPv6 addresses for all modes

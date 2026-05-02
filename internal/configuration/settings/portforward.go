@@ -55,12 +55,6 @@ type PortForwarding struct {
 	Password string `json:"password"`
 }
 
-var (
-	ErrPortsCountTooHigh = errors.New("ports count too high")
-	ErrListeningPortsLen = errors.New("listening ports length must be equal to ports count")
-	ErrListeningPortZero = errors.New("listening port cannot be 0")
-)
-
 func (p PortForwarding) Validate(vpnProvider string) (err error) {
 	if !*p.Enabled {
 		return nil
@@ -78,7 +72,7 @@ func (p PortForwarding) Validate(vpnProvider string) (err error) {
 		providers.Protonvpn,
 	}
 	if err = validate.IsOneOf(providerSelected, validProviders...); err != nil {
-		return fmt.Errorf("%w: %w", ErrPortForwardingEnabled, err)
+		return fmt.Errorf("port forwarding cannot be enabled: %w", err)
 	}
 
 	// Validate Filepath
@@ -94,30 +88,31 @@ func (p PortForwarding) Validate(vpnProvider string) (err error) {
 		const maxPortsCount = 1
 		switch {
 		case p.PortsCount > maxPortsCount:
-			return fmt.Errorf("%w: %d > %d", ErrPortsCountTooHigh, p.PortsCount, maxPortsCount)
+			return fmt.Errorf("ports count too high: %d > %d", p.PortsCount, maxPortsCount)
 		case p.Username == "":
-			return fmt.Errorf("%w", ErrPortForwardingUserEmpty)
+			return errors.New("port forwarding username is empty")
 		case p.Password == "":
-			return fmt.Errorf("%w", ErrPortForwardingPasswordEmpty)
+			return errors.New("port forwarding password is empty")
 		}
 	case providers.Protonvpn:
 		const maxPortsCount = 4
 		if p.PortsCount > maxPortsCount {
-			return fmt.Errorf("%w: %d > %d", ErrPortsCountTooHigh, p.PortsCount, maxPortsCount)
+			return fmt.Errorf("ports count too high: %d > %d", p.PortsCount, maxPortsCount)
 		}
 	default:
 		const maxPortsCount = 1
 		if p.PortsCount > maxPortsCount {
-			return fmt.Errorf("%w: %d > %d", ErrPortsCountTooHigh, p.PortsCount, maxPortsCount)
+			return fmt.Errorf("ports count too high: %d > %d", p.PortsCount, maxPortsCount)
 		}
 	}
 
 	if !slices.Equal(p.ListeningPorts, []uint16{0}) {
 		switch {
 		case len(p.ListeningPorts) != int(p.PortsCount):
-			return fmt.Errorf("%w: %d != %d", ErrListeningPortsLen, len(p.ListeningPorts), p.PortsCount)
+			return fmt.Errorf("listening ports length must be equal to ports count: "+
+				"%d != %d", len(p.ListeningPorts), p.PortsCount)
 		case slices.Contains(p.ListeningPorts, 0):
-			return fmt.Errorf("%w: in %v", ErrListeningPortZero, p.ListeningPorts)
+			return fmt.Errorf("listening port cannot be 0: in %v", p.ListeningPorts)
 		}
 	}
 

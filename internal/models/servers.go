@@ -3,7 +3,6 @@ package models
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -158,8 +157,6 @@ type Servers struct {
 	Servers   []Server `json:"servers,omitempty"`
 }
 
-var ErrServersFormatNotSupported = errors.New("servers format not supported")
-
 func (s *Servers) Format(vpnProvider, format string) (formatted string, err error) {
 	switch format {
 	case "markdown":
@@ -167,7 +164,7 @@ func (s *Servers) Format(vpnProvider, format string) (formatted string, err erro
 	case "json":
 		return s.toJSON()
 	default:
-		return "", fmt.Errorf("%w: %s", ErrServersFormatNotSupported, format)
+		return "", fmt.Errorf("servers format not supported: %s", format)
 	}
 }
 

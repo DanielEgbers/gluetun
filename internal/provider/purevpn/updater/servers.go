@@ -17,7 +17,7 @@ func (u *Updater) FetchServers(ctx context.Context, minServers int) (
 	servers []models.Server, err error,
 ) {
 	if !u.ipFetcher.CanFetchAnyIP() {
-		return nil, fmt.Errorf("%w: %s", common.ErrIPFetcherUnsupported, u.ipFetcher.String())
+		return nil, fmt.Errorf("IP fetcher %s does not support fetching any IP", u.ipFetcher.String())
 	}
 
 	const url = "https://d11a57lttb2ffq.cloudfront.net/heartbleed/router/Recommended-CA2.zip"

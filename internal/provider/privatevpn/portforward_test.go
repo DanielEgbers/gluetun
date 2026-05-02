@@ -22,8 +22,6 @@ func (s roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) {
 func Test_Provider_PortForward(t *testing.T) {
 	t.Parallel()
 
-	errTest := errors.New("test error")
-
 	canceledCtx, cancel := context.WithCancel(context.Background())
 	cancel()
 
@@ -59,7 +57,7 @@ func Test_Provider_PortForward(t *testing.T) {
 						assert.Equal(t,
 							"https://connect.pvdatanet.com/v3/Api/port?ip[]=10.10.10.10",
 							r.URL.String())
-						return nil, errTest
+						return nil, errors.New("test error")
 					}),
 				},
 			},
@@ -156,7 +154,7 @@ func Test_Provider_PortForward(t *testing.T) {
 					}),
 				},
 			},
-			errMessage: "port forwarded not found: in status \"no port here\"",
+			errMessage: "port forwarded not found in status \"no port here\"",
 		},
 		"port_too_big": {
 			ctx: context.Background(),

@@ -74,8 +74,6 @@ func parseWireguardInterfaceSection(interfaceSection *ini.Section) (
 	return privateKey, addresses
 }
 
-var ErrEndpointHostNotIP = errors.New("endpoint host is not an IP")
-
 func parseWireguardPeerSection(peerSection *ini.Section) (
 	preSharedKey, publicKey, endpointIP, endpointPort *string,
 ) {

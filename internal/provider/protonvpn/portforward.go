@@ -12,8 +12,6 @@ import (
 	"github.com/qdm12/gluetun/internal/provider/utils"
 )
 
-var ErrServerPortForwardNotSupported = errors.New("server does not support port forwarding")
-
 const nonSymmetricPortStart uint16 = 56789
 
 // PortForward obtains a VPN server side port forwarded from ProtonVPN gateway.
@@ -21,7 +19,7 @@ func (p *Provider) PortForward(ctx context.Context, objects utils.PortForwardObj
 	internalToExternalPorts map[uint16]uint16, err error,
 ) {
 	if !objects.CanPortForward {
-		return nil, fmt.Errorf("%w", ErrServerPortForwardNotSupported)
+		return nil, errors.New("server does not support port forwarding")
 	}
 
 	client := natpmp.New()
@@ -104,11 +102,6 @@ func checkExternalPorts(logger utils.Logger, udpPort, tcpPort uint16) {
 	}
 }
 
-var (
-	ErrInternalPortChanged = errors.New("internal port changed")
-	ErrExternalPortChanged = errors.New("external port changed")
-)
-
 func (p *Provider) KeepPortForward(ctx context.Context,
 	objects utils.PortForwardObjects,
 ) (err error) {
@@ -135,11 +128,10 @@ func (p *Provider) KeepPortForward(ctx context.Context,
 				}
 				checkLifetime(logger, networkProtocol, lifetime, assignedLiftetime)
 				if externalPort != assignedExternalPort {
-					return fmt.Errorf("%w: %d changed to %d",
-						ErrExternalPortChanged, externalPort, assignedExternalPort)
+					return fmt.Errorf("external port changed from %d to %d", externalPort, assignedExternalPort)
 				} else if internalPort != assignedInternalPort {
-					return fmt.Errorf("%w: %d (for external port %d) changed to %d",
-						ErrInternalPortChanged, internalPort, externalPort, assignedInternalPort)
+					return fmt.Errorf("internal port changed from %d (for external port %d) to %d",
+						internalPort, externalPort, assignedInternalPort)
 				}
 			}
 			objects.Logger.Debug(fmt.Sprintf("port forwarded %d maintained", externalPort))

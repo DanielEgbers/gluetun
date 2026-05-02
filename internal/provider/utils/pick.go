@@ -11,8 +11,6 @@ import (
 	"github.com/qdm12/gluetun/internal/models"
 )
 
-var ErrNoConnectionToPickFrom = errors.New("no connection to pick from")
-
 // pickConnection picks a connection from a pool of connections.
 // If the VPN protocol is Wireguard and the target IP is set,
 // it finds the connection corresponding to this target IP.
@@ -23,7 +21,7 @@ func pickConnection(connections []models.Connection,
 	connection models.Connection, err error,
 ) {
 	if len(connections) == 0 {
-		return connection, ErrNoConnectionToPickFrom
+		return connection, errors.New("no connection to pick from")
 	}
 
 	var targetIP netip.Addr
@@ -56,8 +54,6 @@ func pickRandomConnection(connections []models.Connection,
 	return connections[rand.New(source).Intn(len(connections))] //nolint:gosec
 }
 
-var errTargetIPNotFound = errors.New("target IP address not found")
-
 func getTargetIPConnection(connections []models.Connection,
 	targetIP netip.Addr,
 ) (connection models.Connection, err error) {
@@ -66,6 +62,6 @@ func getTargetIPConnection(connections []models.Connection,
 			return connection, nil
 		}
 	}
-	return connection, fmt.Errorf("%w: in %d filtered connections",
-		errTargetIPNotFound, len(connections))
+	return connection, fmt.Errorf("target IP address not found: in %d filtered connections",
+		len(connections))
 }

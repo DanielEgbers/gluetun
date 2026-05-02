@@ -29,7 +29,7 @@ func SrcAddr(dst netip.AddrPort, proto int) (src netip.AddrPort, cleanup func(),
 }
 
 var (
-	errNoRoute            = fmt.Errorf("no route to destination")
+	errNoRoute            = errors.New("no route to destination")
 	ErrNetworkUnreachable = errors.New("network unreachable")
 )
 

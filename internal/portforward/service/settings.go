@@ -55,23 +55,10 @@ func (s *Settings) OverrideWith(update Settings) {
 	s.Password = gosettings.OverrideWithComparable(s.Password, update.Password)
 }
 
-var (
-	ErrPortForwarderNotSet = errors.New("port forwarder not set")
-	ErrServerNameNotSet    = errors.New("server name not set")
-	ErrUsernameNotSet      = errors.New("username not set")
-	ErrPasswordNotSet      = errors.New("password not set")
-	ErrFilepathNotSet      = errors.New("file path not set")
-	ErrInterfaceNotSet     = errors.New("interface not set")
-	ErrPortsCountZero      = errors.New("ports count cannot be zero")
-	ErrPortsCountTooHigh   = errors.New("ports count too high")
-	ErrListeningPortsLen   = errors.New("listening ports length must be equal to ports count")
-	ErrListeningPortZero   = errors.New("listening port cannot be 0")
-)
-
 func (s *Settings) Validate(forStartup bool) (err error) {
 	// Minimal validation
 	if s.Filepath == "" {
-		return fmt.Errorf("%w", ErrFilepathNotSet)
+		return errors.New("file path not set")
 	}
 
 	if !forStartup {
@@ -83,41 +70,42 @@ func (s *Settings) Validate(forStartup bool) (err error) {
 	// Startup validation requires additional fields set.
 	switch {
 	case s.PortForwarder == nil:
-		return fmt.Errorf("%w", ErrPortForwarderNotSet)
+		return errors.New("port forwarder not set")
 	case s.Interface == "":
-		return fmt.Errorf("%w", ErrInterfaceNotSet)
+		return errors.New("interface not set")
 	case s.PortsCount == 0:
-		return fmt.Errorf("%w", ErrPortsCountZero)
+		return errors.New("ports count cannot be zero")
 	}
 
 	switch s.PortForwarder.Name() {
 	case providers.PrivateInternetAccess:
 		switch {
 		case s.ServerName == "":
-			return fmt.Errorf("%w", ErrServerNameNotSet)
+			return errors.New("server name not set")
 		case s.Username == "":
-			return fmt.Errorf("%w", ErrUsernameNotSet)
+			return errors.New("username not set")
 		case s.Password == "":
-			return fmt.Errorf("%w", ErrPasswordNotSet)
+			return errors.New("password not set")
 		}
 	case providers.Protonvpn:
 		const maxPortsCount = 4
 		if s.PortsCount > maxPortsCount {
-			return fmt.Errorf("%w: %d > %d", ErrPortsCountTooHigh, s.PortsCount, maxPortsCount)
+			return fmt.Errorf("ports count too high: %d > %d", s.PortsCount, maxPortsCount)
 		}
 	default:
 		const maxPortsCount = 1
 		if s.PortsCount > maxPortsCount {
-			return fmt.Errorf("%w: %d > %d", ErrPortsCountTooHigh, s.PortsCount, maxPortsCount)
+			return fmt.Errorf("ports count too high: %d > %d", s.PortsCount, maxPortsCount)
 		}
 	}
 
 	if !slices.Equal(s.ListeningPorts, []uint16{0}) {
 		switch {
 		case len(s.ListeningPorts) != int(s.PortsCount):
-			return fmt.Errorf("%w: %d != %d", ErrListeningPortsLen, len(s.ListeningPorts), s.PortsCount)
+			return fmt.Errorf("listening ports length must be equal to ports count: %d != %d",
+				len(s.ListeningPorts), s.PortsCount)
 		case slices.Contains(s.ListeningPorts, 0):
-			return fmt.Errorf("%w: in %v", ErrListeningPortZero, s.ListeningPorts)
+			return fmt.Errorf("listening port cannot be 0: in %v", s.ListeningPorts)
 		}
 	}
 

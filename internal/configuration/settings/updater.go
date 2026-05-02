@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -37,20 +38,20 @@ type Updater struct {
 func (u Updater) Validate() (err error) {
 	const minPeriod = time.Minute
 	if *u.Period > 0 && *u.Period < minPeriod {
-		return fmt.Errorf("%w: %d must be larger than %s",
-			ErrUpdaterPeriodTooSmall, *u.Period, minPeriod)
+		return fmt.Errorf("VPN server data updater period is too small: "+
+			"%d must be larger than %s", *u.Period, minPeriod)
 	}
 
 	if u.MinRatio <= 0 || u.MinRatio > 1 {
-		return fmt.Errorf("%w: %.2f must be between 0+ and 1",
-			ErrMinRatioNotValid, u.MinRatio)
+		return fmt.Errorf("minimum ratio is not valid: "+
+			"%.2f must be between 0+ and 1", u.MinRatio)
 	}
 
 	validProviders := providers.All()
 	for _, provider := range u.Providers {
 		err = validate.IsOneOf(provider, validProviders...)
 		if err != nil {
-			return fmt.Errorf("%w: %w", ErrVPNProviderNameNotValid, err)
+			return fmt.Errorf("VPN provider name is not valid: %w", err)
 		}
 
 		if provider == providers.Protonvpn {
@@ -58,9 +59,9 @@ func (u Updater) Validate() (err error) {
 			if authenticatedAPI {
 				switch {
 				case *u.ProtonEmail == "":
-					return fmt.Errorf("%w", ErrUpdaterProtonEmailMissing)
+					return errors.New("proton email is missing")
 				case *u.ProtonPassword == "":
-					return fmt.Errorf("%w", ErrUpdaterProtonPasswordMissing)
+					return errors.New("proton password is missing")
 				}
 			}
 		}

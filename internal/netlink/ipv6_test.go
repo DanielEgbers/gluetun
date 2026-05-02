@@ -41,8 +41,6 @@ func findAvailableTCPPort(t *testing.T) (port uint16) {
 func Test_dialAddrThroughFirewall(t *testing.T) {
 	t.Parallel()
 
-	errTest := errors.New("test error")
-
 	const ipv6InternetWorks = false
 
 	testCases := map[string]struct {
@@ -102,7 +100,7 @@ func Test_dialAddrThroughFirewall(t *testing.T) {
 			},
 		},
 		"firewall_add_error": {
-			firewallAddErr: errTest,
+			firewallAddErr: errors.New("test error"),
 			errMessageRegex: func() string {
 				return "accepting output traffic: test error"
 			},
@@ -122,7 +120,7 @@ func Test_dialAddrThroughFirewall(t *testing.T) {
 				addrPort := netip.MustParseAddrPort(listener.Addr().String())
 				return netip.AddrPortFrom(loopback, addrPort.Port())
 			},
-			firewallRemoveErr: errTest,
+			firewallRemoveErr: errors.New("test error"),
 			errMessageRegex: func() string {
 				return "removing output traffic rule: test error"
 			},

@@ -14,12 +14,6 @@ import (
 	"golang.zx2c4.com/wireguard/wgctrl"
 )
 
-var (
-	errKernelSupport   = errors.New("kernel does not support Wireguard")
-	errTunNameMismatch = errors.New("TUN device name is mismatching")
-	errDeviceWaited    = errors.New("device waited for")
-)
-
 // Run runs the wireguard interface and waits until the context is done, then it cleans up the
 // interface and returns any error that occurred during setup or waiting. It sends an error to
 // waitError if any error occurs during setup or waiting, otherwise it sends nil when the context
@@ -44,7 +38,7 @@ func (w *Wireguard) Run(ctx context.Context, waitError chan<- error, ready chan<
 	case "userspace":
 	case "kernelspace":
 		if !kernelSupported {
-			waitError <- fmt.Errorf("%w", errKernelSupport)
+			waitError <- errors.New("kernel does not support Wireguard")
 			return
 		}
 		setupFunction = setupKernelSpace
@@ -199,8 +193,7 @@ func setupUserSpace(ctx context.Context,
 	if err != nil {
 		return 0, nil, fmt.Errorf("getting created TUN device name: %w", err)
 	} else if tunName != interfaceName {
-		return 0, nil, fmt.Errorf("%w: expected %q and got %q",
-			errTunNameMismatch, interfaceName, tunName)
+		return 0, nil, fmt.Errorf("TUN device name is mismatching: expected %q and got %q", interfaceName, tunName)
 	}
 
 	link, err := netLinker.LinkByName(interfaceName)
@@ -247,7 +240,7 @@ func setupUserSpace(ctx context.Context,
 		case err = <-uapiAcceptErrorCh:
 			close(uapiAcceptErrorCh)
 		case <-device.Wait():
-			err = errDeviceWaited
+			err = errors.New("device waited for")
 		}
 
 		cleanups.Cleanup(logger)
