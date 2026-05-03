@@ -25,6 +25,8 @@ func main() {
 		err = internal.MullvadTest(ctx, logger)
 	case "protonvpn-wireguard-port-forwarding":
 		err = internal.ProtonVPNWireguardPortForwardingTest(ctx, logger)
+	case "protonvpn-openvpn-port-forwarding":
+		err = internal.ProtonVPNOpenVPNPortForwardingTest(ctx, logger)
 	default:
 		err = fmt.Errorf("unknown command: %s", os.Args[1])
 	}
