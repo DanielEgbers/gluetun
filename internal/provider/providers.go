@@ -20,7 +20,6 @@ import (
 	"github.com/qdm12/gluetun/internal/provider/ivpn"
 	"github.com/qdm12/gluetun/internal/provider/mullvad"
 	"github.com/qdm12/gluetun/internal/provider/nordvpn"
-	"github.com/qdm12/gluetun/internal/provider/perfectprivacy"
 	"github.com/qdm12/gluetun/internal/provider/privado"
 	"github.com/qdm12/gluetun/internal/provider/privateinternetaccess"
 	"github.com/qdm12/gluetun/internal/provider/privatevpn"
@@ -67,7 +66,6 @@ func NewProviders(storage Storage, timeNow func() time.Time,
 		providers.Ivpn:                  ivpn.New(storage, client, updaterWarner, parallelResolver),
 		providers.Mullvad:               mullvad.New(storage, client),
 		providers.Nordvpn:               nordvpn.New(storage, client, updaterWarner),
-		providers.Perfectprivacy:        perfectprivacy.New(storage, unzipper, updaterWarner),
 		providers.Privado:               privado.New(storage, client, updaterWarner),
 		providers.PrivateInternetAccess: privateinternetaccess.New(storage, timeNow, client),
 		providers.Privatevpn:            privatevpn.New(storage, unzipper, updaterWarner, parallelResolver),
