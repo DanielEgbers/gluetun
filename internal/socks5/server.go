@@ -39,7 +39,7 @@ func (s *server) String() string {
 }
 
 func (s *server) Start(ctx context.Context) (runErr <-chan error, err error) {
-	s.socksConnCtx, s.socksConnCancel = context.WithCancel(context.Background())
+	s.socksConnCtx, s.socksConnCancel = context.WithCancel(context.Background()) //nolint:gosec
 	config := &net.ListenConfig{}
 	s.tcpListener, err = config.Listen(ctx, "tcp", s.address)
 	if err != nil {

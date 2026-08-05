@@ -232,7 +232,7 @@ func (c *apiClient) cookieToken(ctx context.Context, sessionID, tokenType, acces
 
 	buffer := bytes.NewBuffer(nil)
 	encoder := json.NewEncoder(buffer)
-	if err := encoder.Encode(requestBody); err != nil {
+	if err := encoder.Encode(requestBody); err != nil { //nolint:gosec
 		return "", fmt.Errorf("encoding request body: %w", err)
 	}
 
@@ -536,7 +536,7 @@ func httpHeadersToString(headers http.Header) string {
 			if !first {
 				builder.WriteString(", ")
 			}
-			builder.WriteString(fmt.Sprintf("%s: %s", key, value))
+			fmt.Fprintf(&builder, "%s: %s", key, value)
 			first = false
 		}
 	}

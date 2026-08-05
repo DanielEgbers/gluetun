@@ -91,7 +91,7 @@ func (l *Loop) Run(ctx context.Context, done chan<- struct{}) {
 		for stayHere {
 			select {
 			case <-tunnelReady:
-				go l.onTunnelUp(vpnCtx, ctx, tunnelUpData)
+				go l.onTunnelUp(vpnCtx, ctx, tunnelUpData) //nolint:gosec
 			case <-ctx.Done():
 				l.cleanup()
 				vpnCancel()

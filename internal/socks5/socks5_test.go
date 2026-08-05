@@ -292,7 +292,7 @@ func dialSOCKS5(t *testing.T, proxyAddr, targetAddr, username, password string) 
 		connectRequest = []byte{socks5Version, byte(connect), 0, byte(ipv4)}
 		connectRequest = append(connectRequest, ip...)
 	} else {
-		connectRequest = []byte{socks5Version, byte(connect), 0, byte(domainName), byte(len(host))}
+		connectRequest = []byte{socks5Version, byte(connect), 0, byte(domainName), byte(len(host))} //nolint:gosec
 		connectRequest = append(connectRequest, []byte(host)...)
 	}
 	connectRequest = binary.BigEndian.AppendUint16(connectRequest, uint16(targetPort)) //nolint:gosec
@@ -350,9 +350,10 @@ func negotiateSOCKS5(t *testing.T, conn net.Conn, username, password string) {
 	require.Equal(t, byte(method), methodResp[1])
 
 	if method == authUsernamePassword {
-		packet := []byte{authUsernamePasswordSubNegotiation1, byte(len(username))}
+		packet := make([]byte, 0, 2+len(username)+len(password))
+		packet = append(packet, authUsernamePasswordSubNegotiation1, byte(len(username))) //nolint:gosec
 		packet = append(packet, []byte(username)...)
-		packet = append(packet, byte(len(password)))
+		packet = append(packet, byte(len(password))) //nolint:gosec
 		packet = append(packet, []byte(password)...)
 		_, err = conn.Write(packet)
 		require.NoError(t, err)
@@ -443,7 +444,7 @@ func makeSOCKS5UDPDatagram(targetAddress string, payload []byte) ([]byte, error)
 		if len(host) > 255 {
 			return nil, errors.New("domain name too long")
 		}
-		datagram = append(datagram, byte(domainName), byte(len(host)))
+		datagram = append(datagram, byte(domainName), byte(len(host))) //nolint:gosec
 		datagram = append(datagram, []byte(host)...)
 	}
 	datagram = binary.BigEndian.AppendUint16(datagram, uint16(port))

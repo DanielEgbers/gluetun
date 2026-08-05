@@ -12,7 +12,9 @@ import (
 // omitted so wireguard-go's initFromFlags sees no vnet header support and
 // keeps tun.vnetHdr=false, falling back to simple single-packet writes instead
 // of the GRO/GSO batch path that causes EINVAL on some vendor kernels.
-func createTUN(name string, mtu int, gso bool) (tun.Device, error) { //nolint:ireturn
+//
+//nolint:ireturn
+func createTUN(name string, mtu int, gso bool) (tun.Device, error) {
 	if gso {
 		return tun.CreateTUN(name, mtu)
 	}
@@ -49,5 +51,5 @@ func OpenTUNFile(name string) (*os.File, error) {
 		unix.Close(tunFD)
 		return nil, fmt.Errorf("setting nonblock: %w", err)
 	}
-	return os.NewFile(uintptr(tunFD), "/dev/net/tun"), nil
+	return os.NewFile(uintptr(tunFD), "/dev/net/tun"), nil //nolint:gosec
 }
