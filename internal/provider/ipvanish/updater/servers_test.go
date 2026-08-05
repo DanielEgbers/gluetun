@@ -196,12 +196,12 @@ func Test_Updater_GetServers(t *testing.T) {
 			unzipper := common.NewMockUnzipper(ctrl)
 			const zipURL = "https://configs.ipvanish.com/openvpn/v2.6.0-0/configs.zip"
 			// Context is wrapped with User-Agent for ipvanish, so use Any() for the ctx arg
-			unzipper.EXPECT().FetchAndExtract(gomock.Any(), zipURL). //nolint:dogsled
+			unzipper.EXPECT().FetchAndExtract(gomock.Any(), zipURL).
 				Return(testCase.unzipContents, testCase.unzipErr)
 
 			parallelResolver := common.NewMockParallelResolver(ctrl)
 			if testCase.expectResolve {
-				parallelResolver.EXPECT().Resolve(gomock.Any(), testCase.resolverSettings). //nolint:dogsled
+				parallelResolver.EXPECT().Resolve(gomock.Any(), testCase.resolverSettings).
 					Return(testCase.hostToIPs, testCase.resolveWarnings, testCase.resolveErr)
 			}
 
