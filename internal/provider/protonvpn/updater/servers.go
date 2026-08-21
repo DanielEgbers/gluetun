@@ -20,12 +20,12 @@ func (u *Updater) FetchServers(ctx context.Context, minServers int) (
 		return nil, fmt.Errorf("%w: password is empty", common.ErrCredentialsMissing)
 	}
 
-	apiClient, err := newAPIClient(ctx, u.client)
+	apiClient, err := newAPIClient(ctx, u.client, u.warner)
 	if err != nil {
 		return nil, fmt.Errorf("creating API client: %w", err)
 	}
 
-	cookie, err := apiClient.authenticate(ctx, u.email, u.password)
+	cookie, err := apiClient.authenticate(ctx, u.email, u.password, u.totpSecret, u.totpCode)
 	if err != nil {
 		return nil, fmt.Errorf("authentifying with Proton: %w", err)
 	}
