@@ -6,7 +6,7 @@ Lightweight swiss-army-knife-like VPN client to multiple VPN service providers
 
 🗯️ this repository will be migrated to [github.com/passteque/gluetun](https://github.com/passteque/gluetun) on 2026-05-21, which is a Github organization under my sole control, so don't get alarmed if you get redirected in the coming days 😉 Reason being migrating Github sponsors to the Open source collective due to my personal situation, basically annoying paperwork. On the plus side, it will be more transparent and funds donated will only be used for the project. The Docker image names will remain the same.
 
-![Title image](https://raw.githubusercontent.com/passteque/gluetun/master/title.svg)
+![Title image](title.svg)
 
 [![Build status](https://github.com/passteque/gluetun/actions/workflows/ci.yml/badge.svg)](https://github.com/passteque/gluetun/actions/workflows/ci.yml)
 
