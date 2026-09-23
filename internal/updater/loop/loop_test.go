@@ -445,7 +445,7 @@ func Test_Loop_RunRestartTicker_KeepsUpdating(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	mockUpdater := NewMockUpdater(ctrl)
 	mockLogger := NewMockLogger(ctrl)
-	mockTicker := NewMockticker(ctrl)
+	mockTimer := NewMocktimer(ctrl)
 	started, canceled, results := newUpdateSignals()
 	mockUpdater.EXPECT().
 		UpdateServers(liveContext{}, gomock.Nil(), 0.0).
@@ -455,15 +455,15 @@ func Test_Loop_RunRestartTicker_KeepsUpdating(t *testing.T) {
 	mockLogger.EXPECT().Info("starting").Times(2)
 
 	ticksCh := make(chan time.Time)
-	mockTicker.EXPECT().C().Return(ticksCh).Times(4)
+	mockTimer.EXPECT().C().Return(ticksCh).Times(4)
 	// Armed once with the period and re-armed after each of the 3 ticks. Every
 	// arm is reported, so the test can await the last one instead of canceling
 	// the ticker while it is between a tick and arming itself for the next one
 	armsCh := make(chan struct{}, 4)
-	mockTicker.EXPECT().Reset(period).
+	mockTimer.EXPECT().Reset(period).
 		Do(func(time.Duration) { signal(armsCh) }).Times(4)
 	// Stopped on creation and when the context is done
-	mockTicker.EXPECT().Stop().Times(2)
+	mockTimer.EXPECT().Stop().Times(2)
 
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
@@ -480,7 +480,7 @@ func Test_Loop_RunRestartTicker_KeepsUpdating(t *testing.T) {
 		stopped:   make(chan struct{}),
 		timeNow:   time.Now,
 		timeSince: time.Since,
-		newTimer:  func() timer { return mockTicker },
+		newTimer:  func() timer { return mockTimer },
 	}
 	runDone := make(chan struct{})
 	go testLoop.Run(ctx, runDone)

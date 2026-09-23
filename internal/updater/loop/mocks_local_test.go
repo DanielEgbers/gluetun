@@ -16,32 +16,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// Mockticker is a mock of ticker interface.
-type Mockticker struct {
+// Mocktimer is a mock of timer interface.
+type Mocktimer struct {
 	ctrl     *gomock.Controller
-	recorder *MocktickerMockRecorder
+	recorder *MocktimerMockRecorder
 	isgomock struct{}
 }
 
-// MocktickerMockRecorder is the mock recorder for Mockticker.
-type MocktickerMockRecorder struct {
-	mock *Mockticker
+// MocktimerMockRecorder is the mock recorder for Mocktimer.
+type MocktimerMockRecorder struct {
+	mock *Mocktimer
 }
 
-// NewMockticker creates a new mock instance.
-func NewMockticker(ctrl *gomock.Controller) *Mockticker {
-	mock := &Mockticker{ctrl: ctrl}
-	mock.recorder = &MocktickerMockRecorder{mock}
+// NewMocktimer creates a new mock instance.
+func NewMocktimer(ctrl *gomock.Controller) *Mocktimer {
+	mock := &Mocktimer{ctrl: ctrl}
+	mock.recorder = &MocktimerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *Mockticker) EXPECT() *MocktickerMockRecorder {
+func (m *Mocktimer) EXPECT() *MocktimerMockRecorder {
 	return m.recorder
 }
 
 // C mocks base method.
-func (m *Mockticker) C() <-chan time.Time {
+func (m *Mocktimer) C() <-chan time.Time {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "C")
 	ret0, _ := ret[0].(<-chan time.Time)
@@ -49,31 +49,31 @@ func (m *Mockticker) C() <-chan time.Time {
 }
 
 // C indicates an expected call of C.
-func (mr *MocktickerMockRecorder) C() *gomock.Call {
+func (mr *MocktimerMockRecorder) C() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "C", reflect.TypeOf((*Mockticker)(nil).C))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "C", reflect.TypeOf((*Mocktimer)(nil).C))
 }
 
 // Reset mocks base method.
-func (m *Mockticker) Reset(d time.Duration) {
+func (m *Mocktimer) Reset(d time.Duration) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Reset", d)
 }
 
 // Reset indicates an expected call of Reset.
-func (mr *MocktickerMockRecorder) Reset(d any) *gomock.Call {
+func (mr *MocktimerMockRecorder) Reset(d any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*Mockticker)(nil).Reset), d)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Reset", reflect.TypeOf((*Mocktimer)(nil).Reset), d)
 }
 
 // Stop mocks base method.
-func (m *Mockticker) Stop() {
+func (m *Mocktimer) Stop() {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "Stop")
 }
 
 // Stop indicates an expected call of Stop.
-func (mr *MocktickerMockRecorder) Stop() *gomock.Call {
+func (mr *MocktimerMockRecorder) Stop() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*Mockticker)(nil).Stop))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*Mocktimer)(nil).Stop))
 }
